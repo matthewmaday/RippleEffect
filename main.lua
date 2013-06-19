@@ -32,28 +32,27 @@ local gComponents = {}
 
 local function loadRipple()
 
-	require "views.ripple"
+	require "application.views.ripple"
 
 	gComponents[#gComponents+1] = {loadRipple=nil}
 	gComponents.loadRipple  = LoadRipple:new({
 		speed=5, 
 		intensity=10, 
-		source="images/test.png", 
-		xCellCnt=20,
-		yCellCnt=20,
+		source="content/images/test.png", 
+		xCellCnt=5,
+		yCellCnt=5,
 		sheetContentWidth=640,
 		sheetContentHeight=480
 	})
 
-	gComponents.loadRipple:show(3000)
+	gComponents.loadRipple:show(300)
 
 end
-
 
 --------------------------------------------------------------------------------------
 -- scene execution
 --------------------------------------------------------------------------------------
 
 loadRipple()
-
+gComponents.loadRipple:pause()
 return screen

@@ -31,8 +31,8 @@ function LoadRipple:new(params)
 
 		local width,height = params.sheetContentWidth/params.xCellCnt, params.sheetContentHeight/params.yCellCnt
 		local options = {
-			width     = width,                                 -- width of one frame
-			height    = height,                                -- height of one frame
+			width     = width,                                -- width of one frame
+			height    = height,                               -- height of one frame
 			numFrames = params.xCellCnt*params.yCellCnt,      -- total number of frames in spritesheet
 		    sheetContentWidth = params.sheetContentWidth,     -- width of original 1x size of entire sheet
     		sheetContentHeight = params.sheetContentHeight    -- height of original 1x size of entire sheet
@@ -49,8 +49,17 @@ function LoadRipple:new(params)
 			local column = {}
 			for x=1,params.yCellCnt, 1 do
 				local img =  display.newImageRect(self.image, cnt, width, height)
-				column[#column+1] = {image=nil, angle=nil}
-				column[#column].image, column[#column].angle = img, math.random(360) 
+				column[#column+1] = {image=nil,properties=nil}
+				column[#column].image      = img
+				column[#column].properties = {
+					tl = {x=(x-1)*width,y=(y-1)*height},
+					tr = {x=x*width,y=(y-1)*height},
+					br = {x=x*width,y=y*height},
+					bl = {x=(x-1)*width,y=y*height},
+					angle = math.random(360),
+					speed = params.speed
+				}
+
 				img.x, img.y = (x-1)*width, (y-1)*height
 				cnt = cnt+1
 				self:insert(img)
@@ -58,8 +67,39 @@ function LoadRipple:new(params)
 			self.matrix[#self.matrix+1] = column
 		end
 
+		-- create quad anchors
+		-- local xEnd, yEnd = params.xCellCnt+1, params.yCellCnt+1
+		-- self.anchors = {}
+
+		-- for y = 1,xEnd, 1 do
+		-- 	local column = {}
+		-- 	for x=1,yEnd, 1 do
+				 
+		-- 		local values = {
+		-- 		tl = {x=(x-1)*width,y=(y-1)*height},
+		-- 		tr = {x=x*width,y=(y-1)*height},
+		-- 		br = {x=x*width,y=y*height},
+		-- 		bl = {x=(x-1)*width,y=y*height},
+		-- 		angle = math.random(360),
+		-- 		speed = params.speed
+		-- 		}
+
+		-- 		column[#column+1] = values
+		-- 	end
+		-- 	self.anchors[#self.anchors+1] = column
+		-- end
+
+
 		self.alpha = 0
 
+		screen:addEventListener("touch", function()
+			screen:pause()
+		end
+		)
+		Runtime:addEventListener("enterFrame", function() 
+			screen:process() 
+		end
+			)
 	end
 	--------
 	function screen:show(time)
@@ -68,16 +108,53 @@ function LoadRipple:new(params)
 		end
 		})
 	end
-
-
 	--------
 	function screen:hide()
 
 
 	end	
+	--------
+	function screen:process()
+		-- print(screen.anchors[1][1].tl.x,screen.anchors[1][1].tl.y)
+		if self.state == 0 then
+			-- then process the transition in the function
+		
+		print(self.matrix[1][1].properties.angle)
+			local xEnd, yEnd = #self.matrix, #self.matrix[1]
+			
+			for y = 1,xEnd, 1 do
+				for x=1,yEnd, 1 do
+					local ang = self.matrix[y][x].properties.angle + self.matrix[y][x].properties.speed
+					
+					if ang > 360 then
+						ang = ang-360
+					elseif ang < 0 then 
+						ang = ang + 360
+					end
+					self.matrix[y][x].properties.angle = ang
+				end
+			end
+
+			-- render the quads
+
+		end 
+	end
+	--------
+	function screen:pause()
+
+		if self.state == 0 then
+			self.state = 2
+		elseif self.state == 2 then
+			self.state = 0
+		end 
+	end	
+	--------
+	function screen:destory()
+
+
+	end	
 	
 	screen:initialize(params)
-
 	return screen
 
 end
