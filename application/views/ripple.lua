@@ -43,25 +43,19 @@ function LoadRipple:new(params)
 
 		-- create matrix array
 		self.matrix  = {}
+		self.anchors = {}
+
 		local cnt    = 1
-		
+		local column = {}
+
 		for y = 1,params.xCellCnt, 1 do
-			local column = {}
+			column = {}
 			for x=1,params.yCellCnt, 1 do
 
 				local img =  display.newImageRect(self.image, cnt, width, height)
 
-				column[#column+1] = {image=nil,properties=nil}
-				column[#column].image      = img
-				column[#column].properties = {
-					tl = {x=0,y=0}, 
-					tr = {x=width,y=0},
-					br = {x=width,y=height},
-					bl = {x=0,y=height},
-					angle = math.random(360),
-					magnitude = params.magnitude,
-					speed = params.speed
-				}
+				column[#column+1] = {image=nil}
+				column[#column].image = img
 
 				img.x, img.y = (x-1)*width, (y-1)*height
 				cnt = cnt+1
@@ -69,6 +63,23 @@ function LoadRipple:new(params)
 			end
 			self.matrix[#self.matrix+1] = column
 		end
+
+
+		for y = 1,params.xCellCnt, 1 do
+			column = {}
+			for x=1,params.yCellCnt, 1 do
+
+				column[#column+1] = {
+					angle = math.random(360),
+					magnitude = params.magnitude,
+					speed = params.speed
+				}
+
+			end
+
+			self.anchors[#self.anchors+1] = column
+		end
+
 
 		self.alpha = 1
 
@@ -98,20 +109,20 @@ function LoadRipple:new(params)
 		
 		if self.state == 0 then
 
-		local xEnd, yEnd, rads = #self.matrix, #self.matrix[1], 0
+		local xEnd, yEnd, rads = #self.anchors, #self.anchors[1], 0
 			
 			-- update transformations
-			for y = 1,xEnd, 1 do
-				for x=1,yEnd, 1 do
-					local ang = self.matrix[y][x].properties.angle + self.matrix[y][x].properties.speed
+			for y = 1,8, 1 do
+				for x=1,8, 1 do
+					local ang = self.anchors[y][x].angle + self.anchors[y][x].speed
 					
 					if ang > 360 then
 						ang = ang-360
 					elseif ang < 0 then 
 						ang = ang + 360
 					end
-
-					self.matrix[y][x].properties.angle = ang
+					print(ang)
+					self.anchors[y][x].angle = ang
 				end
 			end
 
@@ -127,28 +138,29 @@ function LoadRipple:new(params)
 					if yPos > yEnd then yPos = y end
 
 					-- upper left
-					props = self.matrix[y][x].properties
+					props = self.anchors[y][x]
+					print(props.angle)
 					rads = props.angle * (math.pi / 180.0)
 					self.matrix[y][x].image.x1 = props.magnitude/2 * math.cos(rads) 
 					self.matrix[y][x].image.y1 = props.magnitude/2 * math.sin(rads)
 
 					-- lower left
-					props = self.matrix[yPos][x].properties
+					props = self.anchors[yPos][x]
 					rads = props.angle * (math.pi / 180.0)
-					self.matrix[y][x].image.x2 = self.matrix[y][x].properties.magnitude/2 * math.cos(rads)
-					self.matrix[y][x].image.y2 = self.matrix[y][x].properties.magnitude/2 * math.sin(rads)
+					self.matrix[y][x].image.x2 = props.magnitude/2 * math.cos(rads)
+					self.matrix[y][x].image.y2 = props.magnitude/2 * math.sin(rads)
 
 					-- lower right
-					props = self.matrix[yPos][xPos].properties
+					props = self.anchors[yPos][xPos]
 					rads = props.angle * (math.pi / 180.0)
-					self.matrix[y][x].image.x3 = self.matrix[y][x].properties.magnitude/2 * math.cos(rads)
-					self.matrix[y][x].image.y3 = self.matrix[y][x].properties.magnitude/2 * math.sin(rads)
+					self.matrix[y][x].image.x3 = props.magnitude/2 * math.cos(rads)
+					self.matrix[y][x].image.y3 = props.magnitude/2 * math.sin(rads)
 
 					-- lower right
-					props = self.matrix[y][xPos].properties
+					props = self.anchors[y][xPos]
 					rads = props.angle * (math.pi / 180.0)
-					self.matrix[y][x].image.x4 = self.matrix[y][x].properties.magnitude/2 * math.cos(rads)
-					self.matrix[y][x].image.y4 = self.matrix[y][x].properties.magnitude/2 * math.sin(rads)
+					self.matrix[y][x].image.x4 = props.magnitude/2 * math.cos(rads)
+					self.matrix[y][x].image.y4 = props.magnitude/2 * math.sin(rads)
 
 				end
 			end
