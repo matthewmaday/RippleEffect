@@ -37,10 +37,10 @@ local function loadRipple()
 	gComponents[#gComponents+1] = {loadRipple=nil}
 	gComponents.loadRipple  = LoadRipple:new({
 		speed=5, 
-		intensity=10, 
+		magnitude=5, 
 		source="content/images/test.png", 
-		xCellCnt=5,
-		yCellCnt=5,
+		xCellCnt=8,
+		yCellCnt=8,
 		sheetContentWidth=640,
 		sheetContentHeight=480
 	})

@@ -22,7 +22,7 @@ function LoadRipple:new(params)
 	-- params
 		-- (int) speed 				the speed in which all intersection points move. normally 1-10
 		-- (int) resolution  		the number of total cells within the matrix. normal range 5-20
-		-- (int) intensity 			the amount of distortion normal range 3-10
+		-- (int) magnitude 			the amount of distortion normal range 3-10
 		-- (str) source 			the path to the source image
 		-- (int) xCellCnt	  		the number of horizontal divisions in the effect. normal range 5-20
 		-- (int) yCellCnt			the number of vertical divisions in the effect. normal range 5-20
@@ -40,7 +40,7 @@ function LoadRipple:new(params)
 
 		-- initialize the image sheet
 		self.image = graphics.newImageSheet(params.source, options)
-		
+
 		-- create matrix array
 		self.matrix  = {}
 		local cnt    = 1
@@ -48,15 +48,18 @@ function LoadRipple:new(params)
 		for y = 1,params.xCellCnt, 1 do
 			local column = {}
 			for x=1,params.yCellCnt, 1 do
+
 				local img =  display.newImageRect(self.image, cnt, width, height)
+
 				column[#column+1] = {image=nil,properties=nil}
 				column[#column].image      = img
 				column[#column].properties = {
-					tl = {x=(x-1)*width,y=(y-1)*height},
-					tr = {x=x*width,y=(y-1)*height},
-					br = {x=x*width,y=y*height},
-					bl = {x=(x-1)*width,y=y*height},
+					tl = {x=0,y=0}, 
+					tr = {x=width,y=0},
+					br = {x=width,y=height},
+					bl = {x=0,y=height},
 					angle = math.random(360),
+					magnitude = params.magnitude,
 					speed = params.speed
 				}
 
@@ -67,30 +70,7 @@ function LoadRipple:new(params)
 			self.matrix[#self.matrix+1] = column
 		end
 
-		-- create quad anchors
-		-- local xEnd, yEnd = params.xCellCnt+1, params.yCellCnt+1
-		-- self.anchors = {}
-
-		-- for y = 1,xEnd, 1 do
-		-- 	local column = {}
-		-- 	for x=1,yEnd, 1 do
-				 
-		-- 		local values = {
-		-- 		tl = {x=(x-1)*width,y=(y-1)*height},
-		-- 		tr = {x=x*width,y=(y-1)*height},
-		-- 		br = {x=x*width,y=y*height},
-		-- 		bl = {x=(x-1)*width,y=y*height},
-		-- 		angle = math.random(360),
-		-- 		speed = params.speed
-		-- 		}
-
-		-- 		column[#column+1] = values
-		-- 	end
-		-- 	self.anchors[#self.anchors+1] = column
-		-- end
-
-
-		self.alpha = 0
+		self.alpha = 1
 
 		screen:addEventListener("touch", function()
 			screen:pause()
@@ -115,13 +95,12 @@ function LoadRipple:new(params)
 	end	
 	--------
 	function screen:process()
-		-- print(screen.anchors[1][1].tl.x,screen.anchors[1][1].tl.y)
-		if self.state == 0 then
-			-- then process the transition in the function
 		
-		print(self.matrix[1][1].properties.angle)
-			local xEnd, yEnd = #self.matrix, #self.matrix[1]
+		if self.state == 0 then
+
+		local xEnd, yEnd, rads = #self.matrix, #self.matrix[1], 0
 			
+			-- update transformations
 			for y = 1,xEnd, 1 do
 				for x=1,yEnd, 1 do
 					local ang = self.matrix[y][x].properties.angle + self.matrix[y][x].properties.speed
@@ -131,11 +110,48 @@ function LoadRipple:new(params)
 					elseif ang < 0 then 
 						ang = ang + 360
 					end
+
 					self.matrix[y][x].properties.angle = ang
 				end
 			end
 
-			-- render the quads
+			-- render transformations
+			for y = 1,xEnd, 1 do
+				for x=1,yEnd, 1 do
+
+					local props = nil
+
+					local xPos, yPos = x+1, y+1
+
+					if xPos > xEnd then xPos = x end
+					if yPos > yEnd then yPos = y end
+
+					-- upper left
+					props = self.matrix[y][x].properties
+					rads = props.angle * (math.pi / 180.0)
+					self.matrix[y][x].image.x1 = props.magnitude/2 * math.cos(rads) 
+					self.matrix[y][x].image.y1 = props.magnitude/2 * math.sin(rads)
+
+					-- lower left
+					props = self.matrix[yPos][x].properties
+					rads = props.angle * (math.pi / 180.0)
+					self.matrix[y][x].image.x2 = self.matrix[y][x].properties.magnitude/2 * math.cos(rads)
+					self.matrix[y][x].image.y2 = self.matrix[y][x].properties.magnitude/2 * math.sin(rads)
+
+					-- lower right
+					props = self.matrix[yPos][xPos].properties
+					rads = props.angle * (math.pi / 180.0)
+					self.matrix[y][x].image.x3 = self.matrix[y][x].properties.magnitude/2 * math.cos(rads)
+					self.matrix[y][x].image.y3 = self.matrix[y][x].properties.magnitude/2 * math.sin(rads)
+
+					-- lower right
+					props = self.matrix[y][xPos].properties
+					rads = props.angle * (math.pi / 180.0)
+					self.matrix[y][x].image.x4 = self.matrix[y][x].properties.magnitude/2 * math.cos(rads)
+					self.matrix[y][x].image.y4 = self.matrix[y][x].properties.magnitude/2 * math.sin(rads)
+
+				end
+			end
 
 		end 
 	end
