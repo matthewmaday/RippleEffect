@@ -20,12 +20,12 @@ function LoadRipple:new(params)
 	screen.state = 1   -- 0 = idle, 1 = active, 2 = paused
 
 	-- params
-		-- (int) speed 				the speed in which all intersection points move. normally 1-10
-		-- (int) resolution  		the number of total cells within the matrix. normal range 5-20
-		-- (int) magnitude 			the amount of distortion normal range 3-10
+		-- (int) speed 				the speed in which all intersection points move. (normally 1-10)
+		-- (int) resolution  		the number of total cells within the matrix. (normal range 5-20)
+		-- (int) magnitude 			the amount of distortion (normal range 3-10)
 		-- (str) source 			the path to the source image
-		-- (int) xCellCnt	  		the number of horizontal divisions in the effect. normal range 5-20
-		-- (int) yCellCnt			the number of vertical divisions in the effect. normal range 5-20
+		-- (int) xCellCnt	  		the number of horizontal divisions in the effect. (normal range 5-20)
+		-- (int) yCellCnt			the number of vertical divisions in the effect. (normal range 5-20)
 		-- (int) sheetContentWidth	the width of the source image
 		-- (int) sheetContentHeight	the height of the source image
 
@@ -41,9 +41,9 @@ function LoadRipple:new(params)
 		-- initialize the image sheet
 		self.image = graphics.newImageSheet(params.source, options)
 
-		-- create matrix array
-		self.matrix  = {}
-		self.anchors = {}
+		
+		self.matrix  = {}	-- create matrix table
+		self.anchors = {}	-- create matrix of intersection points
 
 		local cnt    = 1
 		local column = {}
@@ -56,7 +56,7 @@ function LoadRipple:new(params)
 
 				local img =  display.newImageRect(self.image, cnt, width, height)
 
-				column[#column+1] = {image=nil}
+				column[#column+1]     = {image=nil}
 				column[#column].image = img
 
 				img.x, img.y = (x-1)*width, (y-1)*height
@@ -65,6 +65,7 @@ function LoadRipple:new(params)
 			end
 			self.matrix[#self.matrix+1] = column
 		end
+
 
 		local rows, columns = params.yCellCnt, params.xCellCnt
 
@@ -102,9 +103,12 @@ function LoadRipple:new(params)
 		})
 	end
 	--------
-	function screen:hide()
+	function screen:hide(time)
 
-
+		transition.to(self, {time = time, alpha = 0, onComplete = function()
+			screen.state = 0
+		end
+		})
 	end	
 	--------
 	function screen:process()
@@ -164,7 +168,6 @@ function LoadRipple:new(params)
 
 				end
 			end
-
 		end 
 	end
 	--------
@@ -179,6 +182,17 @@ function LoadRipple:new(params)
 	--------
 	function screen:destory()
 
+		local xEnd, yEnd = #self.matrix, #self.matrix[1]
+			
+		for y = 1,yEnd, 1 do
+			for x=1,xEnd, 1 do
+				self.matrix[y][x].image:removeSelf()
+				self.matrix[y][x].image = nil
+			end
+		end
+
+		self.matrix  = {}
+		self.anchors = {}
 
 	end	
 	
