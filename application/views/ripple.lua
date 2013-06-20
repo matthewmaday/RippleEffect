@@ -48,9 +48,11 @@ function LoadRipple:new(params)
 		local cnt    = 1
 		local column = {}
 
-		for y = 1,params.xCellCnt, 1 do
+		local rows, columns = params.yCellCnt, params.xCellCnt
+		
+		for y = 1,columns, 1 do
 			column = {}
-			for x=1,params.yCellCnt, 1 do
+			for x=1,rows, 1 do
 
 				local img =  display.newImageRect(self.image, cnt, width, height)
 
@@ -64,22 +66,22 @@ function LoadRipple:new(params)
 			self.matrix[#self.matrix+1] = column
 		end
 
+		local rows, columns = params.yCellCnt, params.xCellCnt
 
-		for y = 1,params.xCellCnt, 1 do
+		for y = 1,rows, 1 do
 			column = {}
-			for x=1,params.yCellCnt, 1 do
+			for x=1,columns, 1 do
 
 				column[#column+1] = {
-					angle = math.random(360),
+					angle     = math.random(360),
 					magnitude = params.magnitude,
-					speed = params.speed
+					speed     = params.speed
 				}
 
 			end
 
 			self.anchors[#self.anchors+1] = column
 		end
-
 
 		self.alpha = 1
 
@@ -112,16 +114,16 @@ function LoadRipple:new(params)
 		local xEnd, yEnd, rads = #self.anchors, #self.anchors[1], 0
 			
 			-- update transformations
-			for y = 1,8, 1 do
-				for x=1,8, 1 do
-					local ang = self.anchors[y][x].angle + self.anchors[y][x].speed
+			for y = 1,yEnd, 1 do
+				for x=1,xEnd, 1 do
+				local ang = self.anchors[y][x].angle + self.anchors[y][x].speed
 					
 					if ang > 360 then
 						ang = ang-360
 					elseif ang < 0 then 
 						ang = ang + 360
 					end
-					print(ang)
+					
 					self.anchors[y][x].angle = ang
 				end
 			end
@@ -131,7 +133,6 @@ function LoadRipple:new(params)
 				for x=1,yEnd, 1 do
 
 					local props = nil
-
 					local xPos, yPos = x+1, y+1
 
 					if xPos > xEnd then xPos = x end
@@ -139,7 +140,6 @@ function LoadRipple:new(params)
 
 					-- upper left
 					props = self.anchors[y][x]
-					print(props.angle)
 					rads = props.angle * (math.pi / 180.0)
 					self.matrix[y][x].image.x1 = props.magnitude/2 * math.cos(rads) 
 					self.matrix[y][x].image.y1 = props.magnitude/2 * math.sin(rads)
@@ -188,92 +188,3 @@ function LoadRipple:new(params)
 end
 
 return LoadRipple
-
-
--- -- ripple effect script
-
-
--- property pList, pBuffer, pRotations, pCalculations
-
--- on beginSprite me
-  
---   pMember       = "source"
---   pResolution   = 10
---   w             = member(pMember).width
---   h             = member(pMember).height
---   pList         = []
---   pBuffer       = image(member(pMember).width, member(pMember).height, the colorDepth)
---   pRotations    = []
---   pCalculations = []
---   pBuffer.copyPixels(member(pMember).image, member(pMember).rect, member(pMember).rect)
-  
---   x = w / pResolution + ((w MOD float(pResolution)) > 0 )
---   y = h / pResolution + ((h MOD float(pResolution)) > 0 )
-  
---   repeat with ypos = 1 to y+1
-    
---     subList  = []
---     subangle = []
---     subCal   = []
-    
---     repeat with xpos =  1 to x+1
---       append subList, point(pResolution * (xpos-1),pResolution * (ypos-1))
---       append subAngle, random(360)
---       append subcal, point(0,0)
---     end repeat 
-    
---     append pList, duplicate(subList)
---     append pRotations, duplicate(subangle)
---     append pCalculations, duplicate(subcal)
-    
---   end repeat
-  
--- end
--- --------
--- on exitFrame me
-
---   pMember    = "source"
---   pIntensity = 5
---   pSpeed     = 10
-  
---   if NOT listP(pList) or pList.count = 0 then exit
-  
---   x   = pList[1].count
---   y   = pList.count
---   inc = 360 / pSpeed
-  
---   -- new calculations
---   repeat with ypos = 1 to y
---     repeat with xpos =  1 to x
---       pRotations[yPos][xPos] = pRotations[yPos][xPos] + inc
---       if pRotations[yPos][xPos] > 360 then pRotations[yPos][xPos] = pRotations[yPos][xPos]-360
-      
---       radians = ((2*pi())*pRotations[yPos][xPos])/360.0
---       pCalculations[yPos][xpos] = point( pIntensity * sin(radians), pIntensity * cos(radians) )
---     end repeat 
---   end repeat
-  
---   x = x - 1
---   y = y - 1
-  
---   -- draw
---   repeat with ypos = 1 to y
---     repeat with xpos =  1 to x
-      
-      
---       l = pCalculations[ypos][xpos]     + pList[ypos][xpos]
---       t = pCalculations[ypos][xpos+1]   + pList[ypos][xpos+1]
---       r = pCalculations[ypos+1][xpos+1] + pList[ypos+1][xpos+1]
---       b = pCalculations[ypos+1][xpos]   + pList[ypos+1][xpos]
-      
---       q = [ l, t, r, b ]
-      
---       r = rect(pList[ypos][xpos][1], pList[ypos][xpos][2], pList[ypos+1][xpos+1][1], pList[ypos+1][xpos+1][2])
---       pBuffer.copyPixels(member(pMember).image, q, r)
---     end repeat 
---   end repeat
-  
---   member("display").image.copyPixels(pBuffer, pBuffer.rect, pBuffer.rect)
-  
-  
--- end
